@@ -127,7 +127,6 @@ public class NaturesBasket {
 
         String date=LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
 
-        //String fileName=Keys.CONTROL+"v";
         String fileName;
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         Transferable contents = clipboard.getContents(null);
