@@ -2,8 +2,6 @@ package com.qa.seleniumAssignment;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -12,13 +10,17 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Random;
-import java.util.RandomAccess;
+
 
 public class NaturesBasket {
     public static String url = "https://www.naturesbasket.co.in/";
@@ -38,7 +40,7 @@ public class NaturesBasket {
         actions.moveToElement(element).click().perform();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         WebDriver driver = new ChromeDriver(chromeOptions(options));
@@ -114,21 +116,28 @@ public class NaturesBasket {
         backToPreviousScreen.click();
 
 
-      //  driver.get("https://www.naturesbasket.co.in/Online-grocery-shopping/Chocolates-Confectionary-Desserts" +
-       //         "/Chocolates-/Gift-Packs-Bouquets/567_0_0");
         js.executeScript("window.scrollBy(0,2000)");
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
         WebElement emailID = driver.findElement(By.xpath("//input[@name='ctl00$txtNewletter']"));
         wait.until(ExpectedConditions.visibilityOf(emailID));
         actions.click(emailID).sendKeys("Test@gmail.com").build().perform();
-        actions.keyDown(emailID, Keys.CONTROL).sendKeys("a").sendKeys(name).release().build().perform();
-       // actions.click(emailID).sendKeys("Thiru").build().perform();
-//      actions.sendKeys(Keys.CONTROL+"c").perform();
+        emailID.clear();
+        actions.click(emailID).sendKeys(name).build().perform();
+        actions.keyDown(emailID,Keys.CONTROL).sendKeys("ac").build().perform();
 
         String date=LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
 
+        //String fileName=Keys.CONTROL+"v";
+        String fileName;
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Transferable contents = clipboard.getContents(null);
+        try {
+            fileName = (String) contents.getTransferData(DataFlavor.stringFlavor);
+        } catch (UnsupportedFlavorException | IOException e) {
+            throw new RuntimeException(e);
+        }
         String screenshotLocation=
-                System.getProperty("user.dir")+ File.separator+"Screenshots"+File.separator+name+date+".png";
+                System.getProperty("user.dir")+ File.separator+"Screenshots"+File.separator+fileName+date+".png";
         TakesScreenshot screenshot= (TakesScreenshot) driver;
         File source=screenshot.getScreenshotAs(OutputType.FILE);
         File destination=new File(screenshotLocation);
@@ -137,7 +146,7 @@ public class NaturesBasket {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
+        driver.quit();
 
     }
 }
