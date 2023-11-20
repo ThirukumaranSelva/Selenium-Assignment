@@ -40,6 +40,21 @@ public class NaturesBasket {
         actions.moveToElement(element).click().perform();
     }
 
+    public static String date(){
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
+    }
+public static void screenshot(WebDriver driver,String name){
+    String screenshotLocation=
+            System.getProperty("user.dir")+ File.separator+"Screenshots"+File.separator+name+date()+".png";
+    TakesScreenshot screenshot= (TakesScreenshot) driver;
+    File source=screenshot.getScreenshotAs(OutputType.FILE);
+    File destination=new File(screenshotLocation);
+    try {
+        FileUtils.copyFile(source,destination);
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
+}
     public static void main(String[] args) {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
@@ -115,15 +130,12 @@ public class NaturesBasket {
         wait.until(ExpectedConditions.visibilityOf(backToPreviousScreen));
         backToPreviousScreen.click();
 
-
         js.executeScript("window.scrollBy(0,2000)");
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
         WebElement emailID = driver.findElement(By.xpath("//input[@name='ctl00$txtNewletter']"));
         wait.until(ExpectedConditions.visibilityOf(emailID));
         actions.click(emailID).sendKeys(name).build().perform();
         actions.keyDown(emailID,Keys.CONTROL).sendKeys("ac").keyUp(Keys.CONTROL).build().perform();
-
-        String date=LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
 
         String fileName;
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -133,16 +145,7 @@ public class NaturesBasket {
         } catch (UnsupportedFlavorException | IOException e) {
             throw new RuntimeException(e);
         }
-        String screenshotLocation=
-                System.getProperty("user.dir")+ File.separator+"Screenshots"+File.separator+fileName+date+".png";
-        TakesScreenshot screenshot= (TakesScreenshot) driver;
-        File source=screenshot.getScreenshotAs(OutputType.FILE);
-        File destination=new File(screenshotLocation);
-        try {
-            FileUtils.copyFile(source,destination);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        screenshot(driver,fileName);
         driver.quit();
 
     }
