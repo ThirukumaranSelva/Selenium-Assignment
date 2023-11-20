@@ -1,5 +1,10 @@
 package com.qa.seleniumAssignment;
 
+import com.assertthat.selenium_shutterbug.core.Capture;
+import com.assertthat.selenium_shutterbug.core.Shutterbug;
+import com.itextpdf.text.*;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.PdfWriter;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
@@ -9,13 +14,17 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
+import ru.yandex.qatools.ashot.AShot;
+import ru.yandex.qatools.ashot.Screenshot;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -40,27 +49,57 @@ public class NaturesBasket {
         actions.moveToElement(element).click().perform();
     }
 
-    public static String date(){
+    public static String date() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
     }
-public static void screenshot(WebDriver driver,String name){
-    String screenshotLocation=
-            System.getProperty("user.dir")+ File.separator+"Screenshots"+File.separator+name+date()+".png";
-    TakesScreenshot screenshot= (TakesScreenshot) driver;
-    File source=screenshot.getScreenshotAs(OutputType.FILE);
-    File destination=new File(screenshotLocation);
-    try {
-        FileUtils.copyFile(source,destination);
-    } catch (IOException e) {
-        throw new RuntimeException(e);
+
+    public static void screenshot(WebDriver driver, String name) {
+        String screenshotLocation =
+                System.getProperty("user.dir") + File.separator + "Screenshots" + File.separator + name + date() + ".png";
+        TakesScreenshot screenshot = (TakesScreenshot) driver;
+        File source = screenshot.getScreenshotAs(OutputType.FILE);
+        File destination = new File(screenshotLocation);
+        try {
+            FileUtils.copyFile(source, destination);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-}
+
+    public static void fullPagePdf(WebDriver driver, String name) {
+
+        Screenshot aShot = new AShot().shootingStrategy(ShootingStrategies.viewportPasting(1000)).takeScreenshot(driver);
+        String pdfPath=System.getProperty("user.dir")+File.separator+"Pdf"+File.separator+name+".pdf";
+        Document document=new Document(PageSize.A4,0,0,0,0);
+        Image image;
+        try {
+            PdfWriter.getInstance(document,new FileOutputStream(pdfPath));
+        } catch (DocumentException | FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        document.open();
+        try {
+            image=Image.getInstance(aShot.getImage(),null);
+            image.setAbsolutePosition(0, 0);
+            image.scaleToFit(PageSize.A4);
+        } catch (BadElementException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            document.add(image);
+        } catch (DocumentException e) {
+            throw new RuntimeException(e);
+        }
+        document.close();
+        driver.quit();
+    }
+
     public static void main(String[] args) {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         WebDriver driver = new ChromeDriver(chromeOptions(options));
 //Open url
-              driver.get(url);
+        driver.get(url);
 
 //wait
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
@@ -135,7 +174,7 @@ public static void screenshot(WebDriver driver,String name){
         WebElement emailID = driver.findElement(By.xpath("//input[@name='ctl00$txtNewletter']"));
         wait.until(ExpectedConditions.visibilityOf(emailID));
         actions.click(emailID).sendKeys(name).build().perform();
-        actions.keyDown(emailID,Keys.CONTROL).sendKeys("ac").keyUp(Keys.CONTROL).build().perform();
+        actions.keyDown(emailID, Keys.CONTROL).sendKeys("ac").keyUp(Keys.CONTROL).build().perform();
 
         String fileName;
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -145,7 +184,9 @@ public static void screenshot(WebDriver driver,String name){
         } catch (UnsupportedFlavorException | IOException e) {
             throw new RuntimeException(e);
         }
-        screenshot(driver,fileName);
+        screenshot(driver, fileName);
+        fullPagePdf(driver, fileName);
+
         driver.quit();
 
     }
