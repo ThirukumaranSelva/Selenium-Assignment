@@ -122,9 +122,6 @@ public class NaturesBasket {
         wait.until(ExpectedConditions.visibilityOf(emailID));
         actions.click(emailID).sendKeys(name).build().perform();
         actions.keyDown(emailID,Keys.CONTROL).sendKeys("ac").keyUp(Keys.CONTROL).build().perform();
-        emailID.clear();
-        actions.click(emailID).sendKeys("Test@gmail.com").build().perform();
-
 
         String date=LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
 
